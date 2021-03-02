@@ -1,15 +1,16 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  
+  <imgMerge msg="Welcome to Your Vue.js App"/>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import imgMerge from './components/imgMerge.vue'
+
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    imgMerge
   }
 }
 </script>
