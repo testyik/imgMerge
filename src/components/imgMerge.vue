@@ -20,7 +20,7 @@
 	</div>
 	<br/>
 	<div>
-		<canvas id="final-img" ref="finalImg" height="1044" width="1896" v-on:click="save"></canvas>
+		<canvas id="final-img" ref="finalImg" height="0" width="0" v-on:click="save"></canvas>
 	</div>
    
 </template>
