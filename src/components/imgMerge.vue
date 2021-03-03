@@ -1,17 +1,32 @@
 <template>
-  <form name="uploadForm">
-    <div>
-      <input id="uploadInput" type="file" name="myFiles" multiple v-on:input="updateSize"  accept="image/*">
-      selected files: <span id="fileNum">{{fileNum}}</span>;
-      total size: <span id="fileSize">{{fileSize}}</span>
-    </div>
-    
-  </form>
-  <canvas id="final-img" ref="finalImg" height="1044" width="1896" ></canvas>
+	<div>
+		<input id="uploadInput" type="file" name="myFiles" multiple v-on:input="merge"  accept="image/*">
+		selected files: <span id="fileNum">{{fileNum}}</span>
+	</div>
+	<div>
+		marginH: <input name="marginH" type="number" v-model="marginH" />
+	</div>
+	<div>
+		marginV: <input name="marginV" type="number" v-model="marginV" />
+	</div>
+	<div>
+		canvas height: {{canHeight}}
+	</div>
+	<div>
+		canvas width: {{canWidth}}
+	</div>
+	<div>
+		<button v-on:click="refresh">refresh</button>
+	</div>
+	<br/>
+	<div>
+		<canvas id="final-img" ref="finalImg" height="1044" width="1896" v-on:click="save"></canvas>
+	</div>
+   
 </template>
 
 <script>
-
+//import ImgLoad from './ImgLoad.vue'
 
 export default {
   name: 'imgMerge',
@@ -22,65 +37,96 @@ export default {
     return {
       // Define a reversed data property
 		fileNum: 0,
-		fileSize: "0 bytes",
-		imgSrc: ""
+		imgSrc: "",
+		drawImageNum: 0,
+		marginV: 0,
+		marginH: 200,
+		imgList: [],
+		canHeight: 0,
+		canWidth: 0
     };
-  },  methods:{
-	updateSize: function(event){
+  },  
+  methods:{
+	merge: function(event){
 		
-		let nBytes = 0,
-        oFiles = event.target.files,
-        nFiles = oFiles.length;	
+		let	oFiles = event.target.files;
+        this.fileNum = oFiles.length;	
 		
-		if(nFiles < 2){
-			alert("please select 2 image");
-			return;
+		let promiseArr = [];
+		for (let j = 0; j < oFiles.length; j++) {
+			promiseArr.push(this.loadImg(oFiles[j]));
 		}
-		
-		for (let nFileId = 0; nFileId < nFiles; nFileId++) {
-			nBytes += oFiles[nFileId].size;
-		}
-		let sOutput = nBytes + " bytes";
-		// optional code for multiples approximation
-		const aMultiples = ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
-		for (let nMultiple = 0, nApprox = nBytes / 1024; nApprox > 1; nApprox /= 1024, nMultiple++) {
-			sOutput = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + nBytes + " bytes)";
-		}
-		
-		// end of optional code
-		this.fileNum = nFiles;
-		this.fileSize = sOutput;
-		
-			
-		this.mergeImg(event.target.files);
+		Promise.all(promiseArr).then((values) => {
+			this.imgList = values;
+			this.setFinalImgSize();
+			this.mergeImg();
+		});
 	},
-	mergeImg: function (files){
-		const canvas = this.$refs.finalImg;
+	setFinalImgSize: function(){
+		
+		let canvasWidth = this.marginH * 2;
+		let canvasHeight = this.marginV * 2;
+		let minImgHeight = 0;
+		
+		for (let i = 0; i < this.fileNum; i++){
+			canvasWidth += this.imgList[i].width;
+			
+			if (minImgHeight > this.imgList[i].height || minImgHeight == 0){
+				minImgHeight = this.imgList[i].height;
+			}
+		}
+		
+		let canvas = this.$refs.finalImg;
 		const ctx = canvas.getContext('2d');
-		//setup background
-		ctx.fillStyle = 'rgba(255, 0, 0, 0)';
-		ctx.fillRect(0, 0, 1896, 1044);
-		var reader = new FileReader();
-		reader.readAsDataURL(files[0]);
+		this.canWidth = ctx.canvas.width = canvasWidth;
+		this.canHeight = ctx.canvas.height = canvasHeight + minImgHeight; 
+		ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+		ctx.fillRect(0, 0, this.canWidth, this.canHeight);
 		
-		reader.onload = function () {
-			var img = new Image();
-			img.src = reader.result;
-			img.onload = function() {
-				ctx.drawImage(img, 200, 0);
+		
+	},
+	loadImg: function(imgFile){
+		
+		return new Promise((resolve, reject) => {
+			var reader = new FileReader();
+			reader.onload = function () {
+				var img = new Image();
+				img.src = reader.result;
+				img.onload = function() {
+					resolve(img);
+				}
+			};
+			reader.onerror = function() {
+				reject(new Error('load faile'));
 			}
-		};
+			
+			reader.readAsDataURL(imgFile);
+		});		
+	},
+	mergeImg: function (){
+		let canvas = this.$refs.finalImg;
+		const ctx = canvas.getContext('2d');
 		
-		var reader2 = new FileReader();
-		reader2.readAsDataURL(files[1]);
+		console.log(this.imgList);
+		let drewX = this.marginH;
+		while(this.drawImageNum < this.fileNum){
+			this.drawImg(ctx,this.imgList[this.drawImageNum],drewX,this.marginV);
+			drewX += this.imgList[this.drawImageNum].width;
+			this.drawImageNum++;
+		}
 		
-		reader2.onload = function () {
-			var img = new Image();
-			img.src = reader2.result;
-			img.onload = function() {
-				ctx.drawImage(img, 949, 0);
-			}
-		};
+	},
+	drawImg: function(ctx,img,x,y){
+		ctx.drawImage(img, x, y);
+	},
+	save: function(){
+		const canvas = this.$refs.finalImg;
+		var link = document.createElement('a');
+		link.download = 'download.png';
+		link.href = canvas.toDataURL()
+		link.click();
+		link.delete;
+		
 	}
   }
 }
@@ -88,5 +134,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+	#final-img { cursor:pointer;}
 </style>

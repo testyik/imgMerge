@@ -1,5 +1,4 @@
 <template>
-  
   <imgMerge msg="Welcome to Your Vue.js App"/>
 </template>
 
