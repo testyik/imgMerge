@@ -43,7 +43,9 @@ export default {
 		marginH: 200,
 		imgList: [],
 		canHeight: 0,
-		canWidth: 0
+		canWidth: 0,
+		maxImgHeight: 0,
+		totalImgWidth: 0
     };
   },  
   methods:{
@@ -58,31 +60,44 @@ export default {
 		}
 		Promise.all(promiseArr).then((values) => {
 			this.imgList = values;
+			this.getMaxImgHeight();
+			this.alignImgHeight();
 			this.setFinalImgSize();
 			this.mergeImg();
 		});
 	},
-	setFinalImgSize: function(){
-		
-		let canvasWidth = this.marginH * 2;
-		let canvasHeight = this.marginV * 2;
+	refresh: function(){
+		location.reload();
+	},
+	getMaxImgHeight: function(){
 		let minImgHeight = 0;
-		
-		for (let i = 0; i < this.fileNum; i++){
-			canvasWidth += this.imgList[i].width;
-			
+		for (let i = 0; i < this.imgList.length; i++){
 			if (minImgHeight > this.imgList[i].height || minImgHeight == 0){
 				minImgHeight = this.imgList[i].height;
 			}
 		}
+		this.maxImgHeight = minImgHeight;
+		return this.maxImgHeight;
+	},
+	getTotalImgWidth: function(){
+		let totalWidth = 0;
+		for (let i = 0; i < this.imgList.length; i++){
+			totalWidth += this.imgList[i].width;
+		}
+		this.totalImgWidth = totalWidth;
+		return this.totalImgWidth;
+	},
+	setFinalImgSize: function(){
+		
+		let canvasWidth = (this.marginH * 2) + this.getTotalImgWidth();
+		let canvasHeight = (this.marginV * 2) + this.maxImgHeight;
 		
 		let canvas = this.$refs.finalImg;
 		const ctx = canvas.getContext('2d');
 		this.canWidth = ctx.canvas.width = canvasWidth;
-		this.canHeight = ctx.canvas.height = canvasHeight + minImgHeight; 
+		this.canHeight = ctx.canvas.height = canvasHeight; 
 		ctx.fillStyle = 'rgba(0, 0, 0, 0)';
 		ctx.fillRect(0, 0, this.canWidth, this.canHeight);
-		
 		
 	},
 	loadImg: function(imgFile){
@@ -117,7 +132,21 @@ export default {
 		
 	},
 	drawImg: function(ctx,img,x,y){
-		ctx.drawImage(img, x, y);
+		console.log(img.width + " , " + img.height);
+		ctx.drawImage(img, x, y, img.width, img.height );
+	},
+	alignImgHeight: function(){
+		if(this.maxImgHeight <= 0 )
+			return;
+		
+		for (let k = 0; k < this.fileNum; k++){
+			if(this.imgList[k].height > this.maxImgHeight){
+				let aspectRatio = this.imgList[k].height / this.imgList[k].width;
+				this.imgList[k].width = Math.round(this.maxImgHeight / aspectRatio);
+				this.imgList[k].height = this.maxImgHeight;
+			}
+		}
+		console.log(this.imgList);
 	},
 	save: function(){
 		const canvas = this.$refs.finalImg;
