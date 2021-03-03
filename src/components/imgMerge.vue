@@ -89,7 +89,7 @@ export default {
 	},
 	setFinalImgSize: function(){
 		
-		let canvasWidth = (this.marginH * 2) + this.getTotalImgWidth();
+		let canvasWidth = (Number(this.marginH) * 2) + this.getTotalImgWidth();
 		let canvasHeight = (this.marginV * 2) + this.maxImgHeight;
 		
 		let canvas = this.$refs.finalImg;
@@ -112,7 +112,7 @@ export default {
 				}
 			};
 			reader.onerror = function() {
-				reject(new Error('load faile'));
+				reject(new Error('load fail'));
 			}
 			
 			reader.readAsDataURL(imgFile);
@@ -122,17 +122,16 @@ export default {
 		let canvas = this.$refs.finalImg;
 		const ctx = canvas.getContext('2d');
 		
-		console.log(this.imgList);
-		let drewX = this.marginH;
+		let drewX = Number(this.marginH);
 		while(this.drawImageNum < this.fileNum){
 			this.drawImg(ctx,this.imgList[this.drawImageNum],drewX,this.marginV);
 			drewX += this.imgList[this.drawImageNum].width;
+			console.log(drewX);
 			this.drawImageNum++;
 		}
 		
 	},
 	drawImg: function(ctx,img,x,y){
-		console.log(img.width + " , " + img.height);
 		ctx.drawImage(img, x, y, img.width, img.height );
 	},
 	alignImgHeight: function(){
