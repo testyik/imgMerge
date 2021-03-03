@@ -9,12 +9,7 @@
 	<div>
 		marginVertical: <input name="marginV" type="number" v-model="marginV" />
 	</div>
-	<div>
-		canvas height: {{canHeight}}
-	</div>
-	<div>
-		canvas width: {{canWidth}}
-	</div>
+	<br/>
 	<div>
 		<button v-on:click="refresh">refresh</button>
 	</div>
