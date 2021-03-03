@@ -4,10 +4,10 @@
 		selected files: <span id="fileNum">{{fileNum}}</span>
 	</div>
 	<div>
-		marginH: <input name="marginH" type="number" v-model="marginH" />
+		marginHorizon: <input name="marginH" type="number" v-model="marginH" />
 	</div>
 	<div>
-		marginV: <input name="marginV" type="number" v-model="marginV" />
+		marginVertical: <input name="marginV" type="number" v-model="marginV" />
 	</div>
 	<div>
 		canvas height: {{canHeight}}
